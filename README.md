@@ -1,16 +1,24 @@
-# Intro
+# Exteme Racer
 
-I run two Kindle Paperwhites connected to a Raspberry Pi Zero on my Nacra 17 for the following:
+ExtremeRacer provides a tactical display for sailing:
+1. Runs on Raspbery Pi Zero W with Arduino GPS module
+2. Supports multiple Kindle Paperwhite for synchronised displays 
+
+The display provides:
 * Start sequence
-* Early/late indicator so we hit the startline at speed, on the gun
 * Speed over water
 * Heading
+* Precision start (optional)
+* VMG (optional)
 
-Mostly though, it's a data logger to help me analyse, understand my sailng and ultimately do it better.
+In addition, its a data logger to help me track, analyse and understand my sailng performance so as to do it better.
 
-I'm using github actions to auto-deploy to the pi on push.
+## How it works
+
+The application is built on the [SilkFlow](https://github.com/esensible/silkflow) package to implement a super lightweight, reactive web app... in python. There are many packages to do this, including Plotly Dash, but only SilkFlow specifically supports the archane restrictions of the Silk browser available on the Kindle PaperWhite.
 
 ## Pi Setup
+
 1. Install github runner
 
 <!-- 2. sudo visudo 
@@ -25,5 +33,5 @@ I'm using github actions to auto-deploy to the pi on push.
 4. python -m venv /home/pi/venv
 4. Deploy application from github
 5. Enable extremeracer service to auto-start
-   * sudo ln -s /home/pi/pi/extremeracer.service /etc/systemd/system
+   * sudo ln -s /home/pi/extremeracer/extremeracer.service /etc/systemd/system
    * sudo systemctl enable extremeracer
