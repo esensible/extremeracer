@@ -3,6 +3,10 @@ from silkflow.html import *
 
 import common
 
+#
+# Setup state handler
+#
+
 @silkflow.callback
 def push_off(_):
     common.state.value = common.STATE_IDLE

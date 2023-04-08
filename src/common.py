@@ -33,7 +33,7 @@ async def time_generator():
         await asyncio.sleep(remaining_seconds)
         now.value = next_minute.strftime("%I:%M").lstrip('0')
 
-def create_clock_task():
+def start_clock_task():
     return asyncio.create_task(time_generator())
 
 @silkflow.hook

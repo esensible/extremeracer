@@ -6,10 +6,17 @@ import silkflow
 from silkflow.html import *
 
 import common
-import race
+import st_race
 
 logger = logging.getLogger(__name__)
 
+#
+# Start sequence state handler
+#
+
+# disables the sync button for some seconds after the minute rollover
+# to prevent accidental syncs due to display latency
+SYNC_MASK_SECONDS = 10
 
 seq_secs = silkflow.State(0)
 _countdown_task = None
@@ -25,7 +32,7 @@ def _handler(task):
     if exception:
         logging.error("Countdown task exception: %s", exception, exc_info=sys.exc_info())
 
-def start_countdown(seconds):
+def start(seconds):
     global _countdown_task
     _countdown_task = asyncio.create_task(_countdown())
     _countdown_task.add_done_callback(_handler)
@@ -40,14 +47,16 @@ def time_to_start():
 def seq_handler(seconds):
     """Factory function to offset the sequence timer by a number of seconds"""
     def _impl(_):
-        seq_secs.value = (
-            seq_secs.value + seconds
-            if seconds
-            else seq_secs.value - seq_secs.value % 60
-        )
+        if seconds == 0:
+            if seq_secs.value % 60 > 60 - SYNC_MASK_SECONDS:
+                return
+            else:
+                seq_secs.value = seq_secs.value - seq_secs.value % 60
+        elif seq_secs.value > -1 * seconds:
+            seq_secs.value = seq_secs.value + seconds
+
         if seq_secs.value <= 0:
-            race.start_timer()
-            common.state.value = common.STATE_RACE
+            st_race.start()
 
     return silkflow.callback(_impl)
 

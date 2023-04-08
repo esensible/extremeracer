@@ -9,7 +9,7 @@ from silkflow.html import *
 import common
 
 #
-# Race state
+# Race state handler
 #
 
 race_timer = silkflow.State("0")
@@ -49,8 +49,8 @@ def elapsed_time():
 
 @silkflow.callback(confirm=2)
 def finish(_):
-    common.state.value = common.STATE_IDLE
     _race_timer_task.cancel()
+    common.state.value = common.STATE_IDLE
 
 def render():
     return div(

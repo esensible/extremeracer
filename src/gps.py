@@ -57,6 +57,6 @@ class GPSProtocol(asyncio.Protocol):
             asyncio.get_event_loop(), lambda: self, "/dev/serial0", baudrate=9600
         )
 
-def create_task():
+def start():
     gps_protocol = GPSProtocol()
     asyncio.create_task(gps_protocol())

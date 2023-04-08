@@ -1,11 +1,11 @@
 import common
-import sequence
+import st_sequence
 
 import silkflow
 from silkflow.html import *
 
 #
-# Idle state
+# Idle state handler
 #
 
 
@@ -13,7 +13,7 @@ from silkflow.html import *
 def idle_handler(seconds):
     """Factory function to set the sequence timer to a number of seconds"""
     def _impl(_):
-        sequence.start_countdown(seconds)
+        st_sequence.start(seconds)
         common.state.value = common.STATE_SEQ
 
     return silkflow.callback(confirm=True)(_impl)

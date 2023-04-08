@@ -9,10 +9,10 @@ from silkflow.html import *
 
 import common
 import gps
-import idle
-import race
-import setup
-import sequence
+import st_idle
+import st_race
+import st_setup
+import st_sequence
 
 # Configure the root logger
 root_logger = logging.getLogger()
@@ -37,30 +37,30 @@ app.include_router(silkflow.router)
 
 def head():
     return [
-        silkflow.html.title("Extreme Racer"),
-        silkflow.html.link(href="static/style.css", rel="stylesheet"),
+        title("Extreme Racer"),
+        link(href="static/style.css", rel="stylesheet"),
     ]
 
 @app.get("/")
 @silkflow.hook(render=True, head_elems=head())
 def render_ui():
     if common.state.value == common.STATE_INIT:
-        return setup.render()
+        return st_setup.render()
     elif common.state.value == common.STATE_IDLE:
-        return idle.render()
+        return st_idle.render()
     elif common.state.value == common.STATE_SEQ:
-        return sequence.render()
+        return st_sequence.render()
     elif common.state.value == common.STATE_RACE:
-        return race.render()
+        return st_race.render()
     else:
-        return div("Unknown state")
+        return div(h1("Unknown state"))
 
 
 
 @app.on_event("startup")
 async def app_startup():
-    gps.create_task()
-    common.create_clock_task()
+    gps.start()
+    common.start_clock_task()
 
 
 if __name__ == "__main__":
