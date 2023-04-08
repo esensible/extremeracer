@@ -13,7 +13,7 @@ The display provides:
 
 In addition, its a data logger to help me track, analyse and understand my sailng performance so as to do it better.
 
-![2 x Paperwhite Kindles](docs/exteme2.jpg)
+![2 x Paperwhite Kindles](docs/extreme2.jpg)
 
 ## How it works
 
