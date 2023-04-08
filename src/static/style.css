@@ -1,0 +1,129 @@
+html, body {
+    width: 1272px;
+    height: 1474px;
+    overflow: hidden!important;
+    font-family: 'Arial';
+    font-size: 24px;
+    position: relative;
+}
+
+img {
+    max-width: 100%;
+    max-height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+}
+  
+div {
+    padding: 0;
+    line-height: 100%;
+}
+
+.gps {
+    /* padding-left: 150px; */
+    font-size: 500px;
+    text-align: center;
+}
+
+.refresh {
+    background: transparent;
+}
+
+button {
+    background: #ccc;
+    height: 300px;
+    border: 1px solid black;
+    font-size: 150px;
+}
+
+button.line.trans {
+    border: none;
+    background: transparent;
+}
+
+button.idle {
+    width: 25%;
+    font-size: 150px;
+}
+
+button.line {
+    width: 50%;
+    height: 200px;
+    position: relative;
+}
+
+.z-index {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+    font-size: 150px;
+    border: 1px solid black;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+.center-text, .bottom-left, .bottom-right {
+    position: absolute;
+}
+
+.center-text {
+    text-align: center;
+}
+
+
+.bottom-left, .bottom-right {
+    bottom: 0;
+    font-size: 50px;
+}
+
+.bottom-left {
+    left: 0;
+}
+
+.bottom-right {
+    right: 0;
+}
+
+.wrapper {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+}
+
+#idle {
+    position: relative;
+    bottom: 0;
+}
+
+button.zero { 
+    width: 40%; 
+    font-weight: bold; 
+}
+button.one { 
+    width: 20%; 
+}
+button.five { 
+    width: 10%; 
+}
+
+button.finish {
+    height: 70px;
+    font-size: 50px;
+    width: 100%;
+}
+
+.buttons {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+}
+
+button.confirm { width: 100px; height: 100px; border-radius: 100%; }

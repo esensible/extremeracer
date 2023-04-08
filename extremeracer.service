@@ -1,0 +1,17 @@
+[Unit]
+Description=Extreme Racer service
+After=network.target
+
+StartLimitIntervalSec=0
+
+[Service]
+Type=idle
+Environment="PYTHONPATH=/home/pi/pi"
+WorkingDirectory=/home/pi/pi
+ExecStart=/home/pi/venv/bin/uvicorn pi:app --reload --host 0.0.0.0 --port 80
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
+
