@@ -13,6 +13,8 @@ The display provides:
 
 In addition, its a data logger to help me track, analyse and understand my sailng performance so as to do it better.
 
+![2 x Paperwhite Kindles](docs/exteme2.jpg)
+
 ## How it works
 
 The application is built on the [SilkFlow](https://github.com/esensible/silkflow) package to implement a super lightweight, reactive web app... in python. There are many packages to do this, including Plotly Dash, but only SilkFlow specifically supports the archane restrictions of the Silk browser available on the Kindle PaperWhite.
