@@ -38,7 +38,7 @@ app.include_router(silkflow.router)
 def head():
     return [
         silkflow.html.title("Extreme Racer"),
-        silkflow.html.link(href="static/css/style2.css", rel="stylesheet"),
+        silkflow.html.link(href="static/style.css", rel="stylesheet"),
     ]
 
 @app.get("/")

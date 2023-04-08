@@ -1,4 +1,10 @@
-pytest==7.2.0
-pyproj==3.4.1
-requests==2.28.1
-plotly==5.11.0
+fastapi
+asyncio
+pyserial-asyncio==0.6
+pynmea2==1.18.0
+Shapely==1.8.5.post1
+python-json-logger==2.0.4
+# pyproj==1.9.6
+uvicorn
+git+https://github.com/esensible/silkflow.git#egg=silkflow
+    
