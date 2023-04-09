@@ -6,8 +6,8 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=idle
-Environment="PYTHONPATH=/home/pi/pi"
-WorkingDirectory=/home/pi/pi
+Environment="PYTHONPATH=/home/pi/extremeracer/src"
+WorkingDirectory=/home/pi/extremeracer/src
 ExecStart=/home/pi/venv/bin/uvicorn pi:app --reload --host 0.0.0.0 --port 80
 Restart=on-failure
 RestartSec=10s

@@ -25,7 +25,7 @@ async def _countdown():
     while seq_secs.value > 0:
         await asyncio.sleep(1)
         seq_secs.value -= 1
-    race.start()
+    st_race.start()
 
 def _handler(task):
     exception = task.exception()
@@ -38,6 +38,8 @@ def start(seconds):
     _countdown_task.add_done_callback(_handler)
 
     seq_secs.value = seconds
+    common.state.value = common.STATE_SEQ
+
 
 @silkflow.hook
 def time_to_start():
