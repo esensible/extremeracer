@@ -1,6 +1,7 @@
 import asyncio
 import logging
-import sys
+import math
+import time
 
 import silkflow
 from silkflow.html import *
@@ -18,27 +19,49 @@ logger = logging.getLogger(__name__)
 # to prevent accidental syncs due to display latency
 SYNC_MASK_SECONDS = 10
 
+# number of seconds from common.sync time to the start
+_start_epoch = None
+_start_secs = None
+
+# state used to update display
 seq_secs = silkflow.State(0)
 _countdown_task = None
 
 async def _countdown():
-    while seq_secs.value > 0:
-        await asyncio.sleep(1)
-        seq_secs.value -= 1
+    global _start_epoch, _start_secs
+
+    next_tick = _start_epoch + 1
+    if ((next_tick - time.time()) % 1) < 0.5:
+        next_tick += 1
+
+    while next_tick < _start_epoch + _start_secs:
+        sleep_time = next_tick - time.time()
+        await asyncio.sleep(sleep_time)
+        seq_secs.value = _start_epoch + _start_secs - next_tick
+        await silkflow.sync_poll()
+        next_tick += 1
+
     st_race.start()
 
+
 def _handler(task):
-    exception = task.exception()
-    if exception:
-        logging.error("Countdown task exception: %s", exception, exc_info=sys.exc_info())
+    if task.exception() is not None:
+        logger.error(f"Countdown task exception: {task.exception()}")
 
 def start(seconds):
     global _countdown_task
+    global _start_epoch, _start_secs
+
+    #TODO: This should come from the client
+    _start_epoch = time.time()
+    _start_secs = seconds
+    seq_secs.value = seconds
+
     _countdown_task = asyncio.create_task(_countdown())
     _countdown_task.add_done_callback(_handler)
 
-    seq_secs.value = seconds
     common.state.value = common.STATE_SEQ
+    silkflow.sync_poll()
 
 
 @silkflow.hook
@@ -49,16 +72,24 @@ def time_to_start():
 def seq_handler(seconds):
     """Factory function to offset the sequence timer by a number of seconds"""
     def _impl(_):
+        global _start_epoch, _start_secs
+
+        now = time.time()
+        remaining = _start_epoch + _start_secs - now
+
         if seconds == 0:
-            if seq_secs.value % 60 > 60 - SYNC_MASK_SECONDS:
+            if remaining % 60 > 60 - SYNC_MASK_SECONDS:
                 return
             else:
-                seq_secs.value = seq_secs.value - seq_secs.value % 60
-        elif seq_secs.value > -1 * seconds:
-            seq_secs.value = seq_secs.value + seconds
+                _start_epoch -= remaining % 60
+        elif remaining > -1 * seconds:
+            _start_secs += seconds
 
-        if seq_secs.value <= 0:
+        if remaining <= 0:
+            _countdown_task.cancel()
             st_race.start()
+        else:
+            seq_secs.value = _start_epoch + _start_secs - now
 
     return silkflow.callback(_impl)
 

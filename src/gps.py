@@ -39,6 +39,16 @@ class GPSProtocol(asyncio.Protocol):
                         self.offset_applied = True
 
                     state.value = pos
+        # stop callbacks again immediately
+        self.pause_reading()
+
+    def pause_reading(self):
+        # This will stop the callbacks to data_received
+        self.transport.pause_reading()
+
+    def resume_reading(self):
+        # This will start the callbacks to data_received again with all data that has been received in the meantime.
+        self.transport.resume_reading()
 
     def apply_time_offset_from_msg(self, msg):
         system_time = datetime.utcnow()
@@ -53,9 +63,13 @@ class GPSProtocol(asyncio.Protocol):
         time.time = time_with_offset
 
     async def __call__(self):
-        await serial_asyncio.create_serial_connection(
+        transport, protocol = await serial_asyncio.create_serial_connection(
             asyncio.get_event_loop(), lambda: self, "/dev/serial0", baudrate=9600
         )
+
+        while True:
+            await asyncio.sleep(0.3)
+            protocol.resume_reading()
 
 def start():
     gps_protocol = GPSProtocol()

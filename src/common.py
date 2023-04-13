@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
+import math
 
 import silkflow
 from silkflow.html import *
@@ -12,6 +13,7 @@ STATE_SEQ = 2
 STATE_RACE = 3
 state = silkflow.State(STATE_INIT)
 
+sync_condition = None
 
 @silkflow.hook
 def speed():
@@ -24,7 +26,7 @@ def heading():
        
 now = silkflow.State(datetime.now().strftime("%I:%M").lstrip('0'))
 
-async def time_generator():
+async def time_task():
     while True:
         _now = datetime.now()
         next_minute = _now + timedelta(minutes=1)
@@ -32,9 +34,8 @@ async def time_generator():
         remaining_seconds = (next_minute - _now).total_seconds()
         await asyncio.sleep(remaining_seconds)
         now.value = next_minute.strftime("%I:%M").lstrip('0')
+        await silkflow.sync_poll()
 
-def start_clock_task():
-    return asyncio.create_task(time_generator())
 
 @silkflow.hook
 def time_of_day():

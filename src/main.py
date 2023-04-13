@@ -60,7 +60,7 @@ def render_ui():
 @app.on_event("startup")
 async def app_startup():
     gps.start()
-    common.start_clock_task()
+    st_setup.start()
 
 
 if __name__ == "__main__":

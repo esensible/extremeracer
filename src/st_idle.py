@@ -1,3 +1,5 @@
+import asyncio
+
 import common
 import st_sequence
 
@@ -8,11 +10,24 @@ from silkflow.html import *
 # Idle state handler
 #
 
+time_task = None
 
+def start():
+    global time_task
+
+    time_task = asyncio.create_task(common.time_task())
+    common.state.value = common.STATE_IDLE
+    silkflow.sync_poll()
 
 def idle_handler(seconds):
     """Factory function to set the sequence timer to a number of seconds"""
     def _impl(_):
+        global time_task
+
+        if time_task is not None:
+            time_task.cancel()
+            time_task = None
+
         st_sequence.start(seconds)
 
     return silkflow.callback(confirm=True)(_impl)

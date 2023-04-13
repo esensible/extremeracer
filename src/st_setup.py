@@ -1,15 +1,34 @@
+import asyncio
+
 import silkflow
 from silkflow.html import *
 
 import common
+import st_idle
 
 #
 # Setup state handler
 #
 
+time_task = None
+
+def start():
+    global time_task
+
+    time_task = asyncio.create_task(common.time_task())
+    common.state.value = common.STATE_INIT
+    silkflow.sync_poll()
+
+
 @silkflow.callback
 def push_off(_):
-    common.state.value = common.STATE_IDLE
+    global time_task
+
+    if time_task is not None:
+        time_task.cancel()
+        time_task = None
+
+    st_idle.start()
 
 def render():
     return div(
@@ -20,3 +39,4 @@ def render():
                 Class="buttons"
             )
         )
+
