@@ -1,5 +1,6 @@
 from datetime import datetime
 import time
+
 try:
     import asyncio
     import serial_asyncio
@@ -10,9 +11,12 @@ import pynmea2
 import silkflow
 
 
-state = silkflow.State(pynmea2.parse(
-    "$GPRMC,181643.000,A,3456.6333,S,13836.9472,E,0.44,140.90,211022,,,A*72"
-))
+state = silkflow.State(
+    pynmea2.parse(
+        "$GPRMC,181643.000,A,3456.6333,S,13836.9472,E,0.44,140.90,211022,,,A*72"
+    )
+)
+
 
 class GPSProtocol(asyncio.Protocol):
     def __init__(self):
@@ -70,6 +74,7 @@ class GPSProtocol(asyncio.Protocol):
         while True:
             await asyncio.sleep(0.3)
             protocol.resume_reading()
+
 
 def start():
     gps_protocol = GPSProtocol()

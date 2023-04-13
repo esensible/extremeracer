@@ -12,6 +12,7 @@ import st_idle
 
 time_task = None
 
+
 def start():
     global time_task
 
@@ -30,13 +31,10 @@ def push_off(_):
 
     st_idle.start()
 
+
 def render():
     return div(
-            img(src="/static/pissing.jpg"),
-            div(common.time_of_day(), Class="z-index"),
-            div(
-                button("Push off", onClick=push_off, Class="finish"),
-                Class="buttons"
-            )
-        )
-
+        img(src="/static/pissing.jpg"),
+        div(common.time_of_day(), Class="z-index"),
+        div(button("Push off", onClick=push_off, Class="finish"), Class="buttons"),
+    )

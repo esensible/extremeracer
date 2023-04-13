@@ -30,7 +30,11 @@ logger = logging.getLogger(__name__)
 
 app = fastapi.FastAPI()
 
-app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
+app.mount(
+    "/static",
+    StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")),
+    name="static",
+)
 
 app.include_router(silkflow.router)
 
@@ -40,6 +44,7 @@ def head():
         title("Extreme Racer"),
         link(href="static/style.css", rel="stylesheet"),
     ]
+
 
 @app.get("/")
 @silkflow.hook(render=True, head_elems=head())
@@ -54,7 +59,6 @@ def render_ui():
         return st_race.render()
     else:
         return div(h1("Unknown state"))
-
 
 
 @app.on_event("startup")

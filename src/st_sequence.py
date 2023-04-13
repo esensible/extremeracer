@@ -27,6 +27,7 @@ _start_secs = None
 seq_secs = silkflow.State(0)
 _countdown_task = None
 
+
 async def _countdown():
     global _start_epoch, _start_secs
 
@@ -48,11 +49,12 @@ def _handler(task):
     if task.exception() is not None:
         logger.error(f"Countdown task exception: {task.exception()}")
 
+
 def start(seconds):
     global _countdown_task
     global _start_epoch, _start_secs
 
-    #TODO: This should come from the client
+    # TODO: This should come from the client
     _start_epoch = time.time()
     _start_secs = seconds
     seq_secs.value = seconds
@@ -69,8 +71,10 @@ def time_to_start():
     seconds = seq_secs.value
     return f"{int(seconds/60)}:{int(seconds)%60:02}"
 
+
 def seq_handler(seconds):
     """Factory function to offset the sequence timer by a number of seconds"""
+
     def _impl(_):
         global _start_epoch, _start_secs
 
@@ -107,6 +111,6 @@ def render():
                 button("1", onClick=seq_handler(60), Class="one"),
                 button("5", onClick=seq_handler(300), Class="five"),
             ),
-            Class="buttons"
-        )
+            Class="buttons",
+        ),
     )

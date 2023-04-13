@@ -12,6 +12,7 @@ from silkflow.html import *
 
 time_task = None
 
+
 def start():
     global time_task
 
@@ -19,8 +20,10 @@ def start():
     common.state.value = common.STATE_IDLE
     silkflow.sync_poll()
 
+
 def idle_handler(seconds):
     """Factory function to set the sequence timer to a number of seconds"""
+
     def _impl(_):
         global time_task
 

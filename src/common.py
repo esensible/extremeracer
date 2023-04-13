@@ -15,16 +15,19 @@ state = silkflow.State(STATE_INIT)
 
 sync_condition = None
 
+
 @silkflow.hook
 def speed():
     return f"{gps.state.value.spd_over_grnd:.1f}"
+
 
 @silkflow.hook
 def heading():
     return f"{gps.state.value.true_course:.0f}"
 
-       
-now = silkflow.State(datetime.now().strftime("%I:%M").lstrip('0'))
+
+now = silkflow.State(datetime.now().strftime("%I:%M").lstrip("0"))
+
 
 async def time_task():
     while True:
@@ -33,7 +36,7 @@ async def time_task():
         next_minute = next_minute.replace(second=0, microsecond=0)
         remaining_seconds = (next_minute - _now).total_seconds()
         await asyncio.sleep(remaining_seconds)
-        now.value = next_minute.strftime("%I:%M").lstrip('0')
+        now.value = next_minute.strftime("%I:%M").lstrip("0")
         await silkflow.sync_poll()
 
 

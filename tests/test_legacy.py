@@ -98,7 +98,6 @@ def test_nominal(client, set_time):
 
 
 def test_synch(client, set_time):
-
     # get into the start sequence
     gun_ts = 23
     set_time(gun_ts + pi.LATENCY_OFFSET)
@@ -139,7 +138,6 @@ def test_synch(client, set_time):
 
 
 def test_bump(client, set_time):
-
     # get into the start sequence
     gun_ts = 87
     set_time(gun_ts + pi.LATENCY_OFFSET)
@@ -227,7 +225,6 @@ geodesic = pyproj.Geod(ellps="WGS84")
 
 
 def test_line(client, set_time, set_gps):
-
     # get into the start sequence
     gun_ts = 0
     set_time(gun_ts + pi.LATENCY_OFFSET)
@@ -391,7 +388,8 @@ def fuzzy_params():
 
     import json
 
-    print(f"""
+    print(
+        f"""
         def test_(client, set_time, set_gps):
             params = {result}
 
@@ -403,13 +401,13 @@ def fuzzy_params():
                 set_gps,
                 params,
             )
-    """)
+    """
+    )
 
     return result
 
 
 def _test_line(client, set_time, set_gps, fuzzy_params):
-
     # reset the line from previous tests
     _result(client.post("/line"))
 
@@ -514,7 +512,6 @@ def _draw(params):
 
 
 def test_line1(client, set_time, set_gps):
-
     params = {
         "boat": [72.06719313187628, 43.69691586445808],
         "pin": [72.06744323497337, 43.696937162855946],
@@ -554,7 +551,13 @@ def test_line2(client, set_time, set_gps):
 
 
 def test_line3(client, set_time, set_gps):
-    params = {'boat': (87.17384445234363, 0.49996926056783764), 'pin': (87.17487552066837, 0.4999653007562529), 'nacra': (87.17467487328842, 0.4945503854062914), 'heading': 2.033050964989366, 'speed': 22.43426513558897}
+    params = {
+        "boat": (87.17384445234363, 0.49996926056783764),
+        "pin": (87.17487552066837, 0.4999653007562529),
+        "nacra": (87.17467487328842, 0.4945503854062914),
+        "heading": 2.033050964989366,
+        "speed": 22.43426513558897,
+    }
 
     _draw(params)
 
@@ -569,33 +572,57 @@ def test_line3(client, set_time, set_gps):
 @pytest.mark.parametrize("dummy", range(10000))
 def test_fuzz_distance(client, set_time, set_gps, fuzzy_params, dummy):
     _, _, true_distance = geodesic.inv(*fuzzy_params["boat"], *fuzzy_params["pin"])
-    result = pi._distance(shapely_geom.Point(*fuzzy_params["boat"]), shapely_geom.Point(*fuzzy_params["pin"]))
+    result = pi._distance(
+        shapely_geom.Point(*fuzzy_params["boat"]),
+        shapely_geom.Point(*fuzzy_params["pin"]),
+    )
     assert abs((result - true_distance) / true_distance) * 100 < 1
 
     _, _, true_distance = geodesic.inv(*fuzzy_params["nacra"], *fuzzy_params["pin"])
-    result = pi._distance(shapely_geom.Point(*fuzzy_params["nacra"]), shapely_geom.Point(*fuzzy_params["pin"]))
+    result = pi._distance(
+        shapely_geom.Point(*fuzzy_params["nacra"]),
+        shapely_geom.Point(*fuzzy_params["pin"]),
+    )
     assert abs((result - true_distance) / true_distance) * 100 < 1
 
     _, _, true_distance = geodesic.inv(*fuzzy_params["boat"], *fuzzy_params["nacra"])
-    result = pi._distance(shapely_geom.Point(*fuzzy_params["boat"]), shapely_geom.Point(*fuzzy_params["nacra"]))
+    result = pi._distance(
+        shapely_geom.Point(*fuzzy_params["boat"]),
+        shapely_geom.Point(*fuzzy_params["nacra"]),
+    )
     assert abs((result - true_distance) / true_distance) * 100 < 1
 
-
-
-    
 
 @pytest.mark.parametrize("dummy", range(1000))
 def test_fuzz_to_line(client, set_time, set_gps, fuzzy_params, dummy):
     print(fuzzy_params)
-    true_distance = _distance_to_line(fuzzy_params["boat"], fuzzy_params["pin"], fuzzy_params["nacra"], fuzzy_params["heading"])
+    true_distance = _distance_to_line(
+        fuzzy_params["boat"],
+        fuzzy_params["pin"],
+        fuzzy_params["nacra"],
+        fuzzy_params["heading"],
+    )
 
-    line = shapely_geom.LineString([shapely_geom.Point(*fuzzy_params["boat"]), shapely_geom.Point(*fuzzy_params["pin"])])
-    result = pi._distance_to_line(line, shapely_geom.Point(*fuzzy_params["nacra"]), fuzzy_params["heading"])
+    line = shapely_geom.LineString(
+        [
+            shapely_geom.Point(*fuzzy_params["boat"]),
+            shapely_geom.Point(*fuzzy_params["pin"]),
+        ]
+    )
+    result = pi._distance_to_line(
+        line, shapely_geom.Point(*fuzzy_params["nacra"]), fuzzy_params["heading"]
+    )
     assert abs((result - true_distance) / true_distance) * 100 < 10
 
 
 def test_to_line1():
-    params = {'boat': (-165.15037632027585, 1.7744925995611283), 'pin': (-165.1490500901752, 1.7743460088602934), 'nacra': (-165.14861358685047, 1.769476505858151), 'heading': 340.64065600606267, 'speed': 4.222677197047366}
+    params = {
+        "boat": (-165.15037632027585, 1.7744925995611283),
+        "pin": (-165.1490500901752, 1.7743460088602934),
+        "nacra": (-165.14861358685047, 1.769476505858151),
+        "heading": 340.64065600606267,
+        "speed": 4.222677197047366,
+    }
     # {'boat': (-170.78999096316318, -68.31441898246098), 'pin': (-170.78960036670986, -68.31456077130677), 'nacra': (-170.77928289915553, -68.31871942852514), 'heading': 317.36589497720297, 'speed': 21.540908798062524}
     _draw(params)
 
