@@ -32,13 +32,17 @@ async def _countdown():
     global _start_epoch, _start_secs
 
     next_tick = _start_epoch + 1
-    if ((next_tick - time.time()) % 1) < 0.5:
+    while next_tick < time.time() + 0.5:
         next_tick += 1
 
-    while next_tick < _start_epoch + _start_secs:
+    # initialise display to the last value that we just skipped
+    # this handles a long confirm time in the UI
+    seq_secs.value = _start_secs - (next_tick - _start_epoch - 1)
+
+    while next_tick <= _start_epoch + _start_secs:
         sleep_time = next_tick - time.time()
         await asyncio.sleep(sleep_time)
-        seq_secs.value = _start_epoch + _start_secs - next_tick
+        seq_secs.value = _start_secs - (next_tick - _start_epoch)
         await silkflow.sync_poll()
         next_tick += 1
 
@@ -50,20 +54,18 @@ def _handler(task):
         logger.error(f"Countdown task exception: {task.exception()}")
 
 
-def start(seconds):
+def start(epoch, seconds):
     global _countdown_task
     global _start_epoch, _start_secs
 
-    # TODO: This should come from the client
-    _start_epoch = time.time()
+    _start_epoch = epoch / 1000.0
     _start_secs = seconds
-    seq_secs.value = seconds
 
     _countdown_task = asyncio.create_task(_countdown())
     _countdown_task.add_done_callback(_handler)
 
     common.state.value = common.STATE_SEQ
-    silkflow.sync_poll()
+    asyncio.create_task(silkflow.sync_poll())
 
 
 @silkflow.hook

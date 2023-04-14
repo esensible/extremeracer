@@ -18,7 +18,7 @@ def start():
 
     time_task = asyncio.create_task(common.time_task())
     common.state.value = common.STATE_INIT
-    silkflow.sync_poll()
+    asyncio.create_task(silkflow.sync_poll())
 
 
 @silkflow.callback

@@ -19,6 +19,10 @@ _race_timer_task = None
 
 
 async def _timer():
+    now = datetime.now()
+    race_seconds = (now - _race_start).total_seconds()
+    race_timer.value = str(int(race_seconds / 60))
+
     while True:
         now = datetime.now()
         race_seconds = (now - _race_start).total_seconds()
@@ -44,9 +48,8 @@ def start():
     _race_start = datetime.now()
     _race_timer_task = asyncio.create_task(_timer())
     _race_timer_task.add_done_callback(_handler)
-    race_timer.value = "0"
     common.state.value = common.STATE_RACE
-    silkflow.sync_poll()
+    asyncio.create_task(silkflow.sync_poll())
 
 
 @silkflow.hook

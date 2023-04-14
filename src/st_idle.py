@@ -18,20 +18,20 @@ def start():
 
     time_task = asyncio.create_task(common.time_task())
     common.state.value = common.STATE_IDLE
-    silkflow.sync_poll()
+    asyncio.create_task(silkflow.sync_poll())
 
 
 def idle_handler(seconds):
     """Factory function to set the sequence timer to a number of seconds"""
 
-    def _impl(_):
+    def _impl(event):
         global time_task
 
         if time_task is not None:
             time_task.cancel()
             time_task = None
 
-        st_sequence.start(seconds)
+        st_sequence.start(event["time"], seconds)
 
     return silkflow.callback(confirm=True)(_impl)
 
