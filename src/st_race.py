@@ -33,21 +33,12 @@ async def _timer():
         await silkflow.sync_poll()
 
 
-def _handler(task):
-    exception = task.exception()
-    if exception:
-        logging.error(
-            "Race timer task exception: %s", exception, exc_info=sys.exc_info()
-        )
-
-
 def start():
     global _race_timer_task
     global _race_start
 
     _race_start = datetime.now()
     _race_timer_task = asyncio.create_task(_timer())
-    _race_timer_task.add_done_callback(_handler)
     common.state.value = common.STATE_RACE
     asyncio.create_task(silkflow.sync_poll())
 
