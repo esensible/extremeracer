@@ -31,22 +31,30 @@ class Pos:
 # Function to update GPS
 def update_gps(lat1, lon1, lat2, lon2, speed):
 
-    bearing = utils.bearing(math.radians(lat1), math.radians(lon1), math.radians(lat2), math.radians(lon2))
-    print(math.degrees(bearing))
+    coords = list(map(math.radians, [lat1, lon1, lat2, lon2]))
+    bearing = utils.bearing(*coords)
     gps.state.value = Pos(lat1, lon1, math.degrees(bearing), speed)
     event.set()
+
+    return coords[0], coords[1], bearing
    
 
-def get_buoys():
+def get_buoys(lat, lon, bearing):
     result = []
-    print(common.line.value)
     if common.line.value & common.LINE_PORT:
-        result.append(dl.Marker(position=[math.degrees(common.line_port[0]), math.degrees(common.line_port[1])]))
+        port = [math.degrees(common.line_port[0]), math.degrees(common.line_port[1])]
+        result.append(dl.Marker(position=port))
 
     if common.line.value & common.LINE_STBD:
-        result.append(dl.Marker(position=[math.degrees(common.line_stbd[0]), math.degrees(common.line_stbd[1])]))
+        stbd = [math.degrees(common.line_stbd[0]), math.degrees(common.line_stbd[1])]
+        result.append(dl.Marker(position=stbd))
 
-    print(result)
+    if common.line.value == common.LINE_BOTH:
+        result.append(dl.Polyline(id="line", positions=[port, stbd], color="red"))
+        inter = utils.intersection_point(lat, lon, bearing, *common.line_port, *common.line_stbd)
+        inter = [math.degrees(inter[0]), math.degrees(inter[1])]
+        result.append(dl.Marker(position=inter))
+
     return result
 
 # Dash app setup
@@ -92,7 +100,7 @@ def update_gps_data(marker1_center, marker2_center, refresh_button_clicks, speed
 
     lat1, lon1 = marker1_center
     lat2, lon2 = marker2_center
-    update_gps(lat1, lon1, lat2, lon2, speed)
+    boat_lat, boat_lon, bearing = update_gps(lat1, lon1, lat2, lon2, speed)
 
     # Update the map with the new markers
     map_children = [
@@ -100,7 +108,7 @@ def update_gps_data(marker1_center, marker2_center, refresh_button_clicks, speed
         dl.Marker(id="marker1", position=marker1_center, draggable=True),
         dl.Marker(id="marker2", position=marker2_center, draggable=True),
         dl.Polyline(id="line", positions=[marker1_center, marker2_center], color="green"),
-    ] + get_buoys()
+    ] + get_buoys(boat_lat, boat_lon, bearing)
 
     return marker1_center, marker2_center, [marker1_center, marker2_center], map_children
 

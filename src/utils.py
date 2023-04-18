@@ -27,19 +27,32 @@ def local_radius(lat: float) -> float:
 
     return radius
 
-def intersection_point(lat1, lon1, heading1, lat2, lon2, heading2):
-    # Calculate the unit vectors along the headings at the initial points
-    vector1 = (math.cos(heading1) * math.cos(lat1), math.cos(heading1) * math.sin(lat1), math.sin(heading1))
-    vector2 = (math.cos(heading2) * math.cos(lat2), math.cos(heading2) * math.sin(lat2), math.sin(heading2))
+def intersection_point(pt_lat: float, pt_lon: float, point_heading: float, lat1: float, lon1: float, lat2: float, lon2: float, R: float = 6371000) -> Tuple[float, float]:
+    def normalize_longitude(lon: float) -> float:
+        return (lon + math.pi) % (2 * math.pi) - math.pi
+    
+    def initial_bearing(lat1, lon1, lat2, lon2):
+        y = math.sin(lon2 - lon1) * math.cos(lat2)
+        x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(lon2 - lon1)
+        return normalize_longitude(math.atan2(y, x))
 
-    # Calculate the cross product of the two vectors
-    cross_product = (vector1[1] * vector2[2] - vector1[2] * vector2[1],
-                     vector1[2] * vector2[0] - vector1[0] * vector2[2],
-                     vector1[0] * vector2[1] - vector1[1] * vector2[0])
+    # Calculate the initial bearings from point 1 to point 2, and from the given point to point 1 and point 2
+    bearing12 = initial_bearing(lat1, lon1, lat2, lon2)
+    bearing1_pt = initial_bearing(lat1, lon1, pt_lat, pt_lon)
+    bearing2_pt = initial_bearing(lat2, lon2, pt_lat, pt_lon)
+
+    # Calculate the angular distance between point 1 and point 2
+    delta_sigma12 = math.acos(math.sin(lat1) * math.sin(lat2) + math.cos(lat1) * math.cos(lat2) * math.cos(lon2 - lon1))
+
+    # Calculate the spherical excess E
+    E = math.atan2(math.sin(bearing12 - bearing1_pt) * math.sin(delta_sigma12), math.cos(bearing2_pt) - math.cos(bearing1_pt) * math.cos(bearing12))
+
+    # Calculate the angular distance between point 1 and the intersection point
+    delta_sigma1i = math.atan2(math.sin(E), math.cos(bearing1_pt) + math.cos(E) * math.cos(bearing12))
 
     # Calculate the latitude and longitude of the intersection point
-    intersection_lat = math.atan2(cross_product[2], math.sqrt(cross_product[0] ** 2 + cross_product[1] ** 2))
-    intersection_lon = math.atan2(cross_product[1], cross_product[0])
+    intersection_lat = math.asin(math.sin(lat1) * math.cos(delta_sigma1i) + math.cos(lat1) * math.sin(delta_sigma1i) * math.cos(point_heading))
+    intersection_lon = normalize_longitude(lon1 + math.atan2(math.sin(point_heading) * math.sin(delta_sigma1i) * math.cos(lat1), math.cos(delta_sigma1i) - math.sin(lat1) * math.sin(intersection_lat)))
 
     return intersection_lat, intersection_lon
 
@@ -93,42 +106,6 @@ def bearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return bearing_rad
 
 
-def distance_to_intersection(lat1: float, lon1: float, heading1: float, lat2: float, lon2: float, heading2: float, R: float = 6371000) -> float:
-    """
-    Calculate the great-circle distance from a point along a given heading to the intersection
-    with another great circle defined by a point and a heading.
-
-    Args:
-        lat1 (float): Latitude of point 1 in radians.
-        lon1 (float): Longitude of point 1 in radians.
-        heading1 (float): Heading from point 1 in radians.
-        lat2 (float): Latitude of point 2 in radians.
-        lon2 (float): Longitude of point 2 in radians.
-        heading2 (float): Heading from point 2 in radians.
-        R (float, optional): Earth's radius in meters. Default is 6,371,000 meters.
-
-    Returns:
-        float: Great-circle distance from point 1 along heading1 to the intersection with the great circle defined by point 2 and heading2 in meters.
-    """
-
-    # # Calculate the angular distance (delta_sigma) between points using the spherical law of cosines
-    # delta_sigma = math.acos(math.sin(lat1) * math.sin(lat2) + math.cos(lat1) * math.cos(lat2) * math.cos(lon2 - lon1))
-
-    # # Calculate the cross-track distance from point 1 to the great circle defined by point 2 and heading2
-    # sin_cross_track_distance = math.sin(lat1) * math.cos(delta_sigma) - math.cos(lat1) * math.sin(delta_sigma) * math.cos(heading1)
-    # cross_track_distance = math.asin(sin_cross_track_distance)
-
-    # # Calculate the distance along the heading1 to the intersection (delta_alpha1)
-    # sin_delta_alpha1 = math.sin(delta_sigma) * math.sin(heading1) / math.sin(cross_track_distance)
-    # delta_alpha1 = math.asin(sin_delta_alpha1)
-
-    # # Calculate the great-circle distance from point 1 along heading1 to the intersection
-    # distance = R * delta_alpha1
-
-    # return distance
-
-    intersection_lat, intersection_lon = intersection_point(lat1, lon1, heading1, lat2, lon2, heading2)
-    return distance(lat1, lon1, intersection_lat, intersection_lon, R)
 
 def simple_diff(heading1: float, heading2: float) -> float:
     heading1 = math.fmod(heading1, 2 * math.pi)
@@ -184,7 +161,14 @@ def seconds_to_line(boat_lat: float, boat_lon: float, boat_heading: float, boat_
 
         if angle_diff_boat_stbd > 0 and angle_diff_boat_port > 0:
             # boat heading intersects the line
-            return None, distance_to_intersection(boat_lat, boat_lon, boat_heading, stbd_lat, stbd_lon, line_heading, R) / boat_speed
+
+            lat1, lon1 = intersection_point(boat_lat, boat_lon, boat_heading, stbd_lat, stbd_lon, port_lat, port_lon, R)
+            d = distance(boat_lat, boat_lon, lat1, lon1, R)
+            print(boat_lat, boat_lon, boat_heading)
+            print(stbd_lat, stbd_lon, port_lat, port_lon)
+            print(lat1, lon1, d)
+            return None, d / boat_speed
+
         elif simple_diff(line_heading, boat_heading) > 0:
             print("heading away")
         else:
