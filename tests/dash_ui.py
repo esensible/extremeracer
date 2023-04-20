@@ -21,25 +21,17 @@ import silkflow
 # Global variable to store the GPS data
 gps_data = (0, 0, 0, 0, 0)
 
-class Pos:
-    def __init__(self, lat, lon, heading, speed):
-        self.latitude = lat
-        self.longitude = lon
-        self.true_course = heading
-        self.spd_over_grnd = speed
 
 # Function to update GPS
 def update_gps(lat1, lon1, lat2, lon2, speed):
 
     coords = list(map(math.radians, [lat1, lon1, lat2, lon2]))
-    bearing = utils.bearing(*coords)
-    gps.state.value = Pos(lat1, lon1, math.degrees(bearing), speed)
+    heading = math.degrees(utils.bearing(*coords))
+    common.update_gps(lat1, lon1, heading, speed, sync=False)
     event.set()
 
-    return coords[0], coords[1], bearing
-   
 
-def get_buoys(lat, lon, bearing):
+def get_buoys():
     result = []
     if common.line.value & common.LINE_PORT:
         port = [math.degrees(common.line_port[0]), math.degrees(common.line_port[1])]
@@ -51,9 +43,6 @@ def get_buoys(lat, lon, bearing):
 
     if common.line.value == common.LINE_BOTH:
         result.append(dl.Polyline(id="line", positions=[port, stbd], color="red"))
-        inter = utils.intersection_point(lat, lon, bearing, *common.line_port, *common.line_stbd)
-        inter = [math.degrees(inter[0]), math.degrees(inter[1])]
-        result.append(dl.Marker(position=inter))
 
     return result
 
@@ -100,7 +89,7 @@ def update_gps_data(marker1_center, marker2_center, refresh_button_clicks, speed
 
     lat1, lon1 = marker1_center
     lat2, lon2 = marker2_center
-    boat_lat, boat_lon, bearing = update_gps(lat1, lon1, lat2, lon2, speed)
+    update_gps(lat1, lon1, lat2, lon2, speed)
 
     # Update the map with the new markers
     map_children = [
@@ -108,7 +97,7 @@ def update_gps_data(marker1_center, marker2_center, refresh_button_clicks, speed
         dl.Marker(id="marker1", position=marker1_center, draggable=True),
         dl.Marker(id="marker2", position=marker2_center, draggable=True),
         dl.Polyline(id="line", positions=[marker1_center, marker2_center], color="green"),
-    ] + get_buoys(boat_lat, boat_lon, bearing)
+    ] + get_buoys()
 
     return marker1_center, marker2_center, [marker1_center, marker2_center], map_children
 

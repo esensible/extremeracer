@@ -1,21 +1,13 @@
-from datetime import datetime
-import time
-
 try:
     import asyncio
     import serial_asyncio
 except:
     pass
+from datetime import datetime
+import time
 import pynmea2
 
-import silkflow
-
-
-state = silkflow.State(
-    pynmea2.parse(
-        "$GPRMC,181643.000,A,3456.6333,S,13836.9472,E,0.44,140.90,211022,,,A*72"
-    )
-)
+import common
 
 
 class GPSProtocol(asyncio.Protocol):
@@ -42,7 +34,10 @@ class GPSProtocol(asyncio.Protocol):
                         self.apply_time_offset_from_msg(pos)
                         self.offset_applied = True
 
-                    state.value = pos
+                    common.update_gps(
+                        pos.latitude, pos.longitude, pos.true_course, pos.spd_over_grnd
+                    )
+
         # stop callbacks again immediately
         self.pause_reading()
 
