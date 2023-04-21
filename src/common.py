@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
+import logging
 import math
 import utils
 
@@ -12,9 +13,11 @@ STATE_SEQ = 2
 STATE_RACE = 3
 state = silkflow.State(STATE_INIT)
 
+logger = logging.getLogger(__name__)
 
 class GpsData:
-    __slots__ = ["latitude", "longitude", "heading", "heading_deg", "speed"]
+    __slots__ = ["latitude", "longitude", "heading", "heading_deg", "speed", "unwrapped_heading"]
+    _last_heading = None
 
     def __init__(self, latitude, longitude, heading, speed):
         self.latitude = math.radians(latitude)
@@ -22,6 +25,22 @@ class GpsData:
         self.heading = math.radians(heading)
         self.heading_deg = heading
         self.speed = speed
+        
+        if GpsData._last_heading is None:
+            self.unwrapped_heading = self.heading
+        else:
+            diff = self.heading - GpsData._last_heading
+            if diff > math.pi:
+                diff -= 2 * math.pi
+            elif diff < -math.pi:
+                diff += 2 * math.pi
+                
+            self.unwrapped_heading = GpsData._last_heading + diff
+        
+        GpsData._last_heading = self.unwrapped_heading
+
+    def to_tupple(self):
+        return (self.latitude, self.longitude, self.unwrapped_heading, self.speed)
 
 
 gps = silkflow.State(GpsData(1e-5, 1e-5, 1e-5, 1e-5))
@@ -79,9 +98,11 @@ def update_gps(latitude, longitude, heading, speed, sync=True):
     pos = GpsData(latitude, longitude, heading, speed)
     gps.value = pos
 
+    if state.value != STATE_INIT:
+        logger.info("gps", extra=dict(pos=pos.to_tupple(), state=state.value))
+
     if line.value == LINE_BOTH:
-        # print(pos.latitude, pos.longitude, pos.heading, pos.speed, *line_stbd, *line_port, line_heading, line_length)
-        tmp, line_cross_seconds.value = utils.seconds_to_line(
+        cross, tmp, line_cross_seconds.value = utils.seconds_to_line(
             pos.latitude,
             pos.longitude,
             pos.heading,
@@ -108,6 +129,8 @@ def click_stbd(event):
         gps.value.longitude,
     )
 
+    logger.info("click_stbd", extra=dict(loc=line_stbd, line=line.value))
+
     if line.value == LINE_BOTH:
         global line_heading
         global line_length
@@ -115,6 +138,7 @@ def click_stbd(event):
             line_stbd[0], line_stbd[1], line_port[0], line_port[1]
         )
         line_length = utils.distance(*line_stbd, *line_port)
+        logger.info("line", extra=dict(stbd=line_stbd, port=line_port, heading=line_heading, length=line_length))
 
 
 @silkflow.callback
@@ -126,6 +150,7 @@ def click_port(event):
         gps.value.latitude,
         gps.value.longitude,
     )
+    logger.info("click_port", extra=dict(loc=line_port, line=line.value))
 
     if line.value == LINE_BOTH:
         global line_heading
@@ -134,6 +159,7 @@ def click_port(event):
             line_stbd[0], line_stbd[1], line_port[0], line_port[1]
         )
         line_length = utils.distance(*line_stbd, *line_port)
+        logger.info("line", extra=dict(stbd=line_stbd, port=line_port, heading=line_heading, length=line_length))
 
 
 @silkflow.hook

@@ -1,10 +1,13 @@
 import asyncio
+import logging
 
 import common
 import st_sequence
 
 import silkflow
 from silkflow.html import *
+
+logger = logging.getLogger(__name__)
 
 #
 # Idle state handler
@@ -17,6 +20,7 @@ def start():
     global time_task
 
     time_task = asyncio.create_task(common.time_task())
+    logger.info("State change", extra=dict(from_=common.state.value, to=common.STATE_IDLE))
     common.state.value = common.STATE_IDLE
     asyncio.create_task(silkflow.sync_poll())
 

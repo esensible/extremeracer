@@ -49,11 +49,6 @@ async def _countdown():
     st_race.start()
 
 
-def _handler(task):
-    if task.exception() is not None:
-        logger.error(f"Countdown task exception: {task.exception()}")
-
-
 def start(epoch, seconds):
     global _countdown_task
     global _start_epoch, _start_secs
@@ -62,8 +57,7 @@ def start(epoch, seconds):
     _start_secs = seconds
 
     _countdown_task = asyncio.create_task(_countdown())
-    _countdown_task.add_done_callback(_handler)
-
+    logger.info("State change", extra=dict(from_=common.state.value, to=common.STATE_SEQ, epoch=epoch, seconds=seconds))
     common.state.value = common.STATE_SEQ
     asyncio.create_task(silkflow.sync_poll())
 
@@ -91,11 +85,14 @@ def seq_handler(seconds):
         elif remaining > -1 * seconds:
             _start_secs += seconds
 
-        if remaining <= 0:
+        now_remaining = _start_epoch + _start_secs - now
+        logger.info("Start adjust", extra=dict(seconds=seconds, init_remaining=remaining, remaining=now_remaining))
+                    
+        if now_remaining <= 0:
             _countdown_task.cancel()
             st_race.start()
         else:
-            seq_secs.value = _start_epoch + _start_secs - now
+            seq_secs.value = now_remaining
 
     return silkflow.callback(_impl)
 

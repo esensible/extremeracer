@@ -44,7 +44,9 @@ def local_radius(lat: float) -> float:
 
 
 def great_circle_intersection(a_lat, a_lon, b_lat, b_lon, c_lat, c_lon, d_lat, d_lon):
-    # Convert points to Cartesian coordinates
+    # TODO: Normal of start line doesn't need to be recalculated every time
+
+    # cartesian coordinates
     xa, ya, za = (
         math.cos(a_lat) * math.cos(a_lon),
         math.cos(a_lat) * math.sin(a_lon),
@@ -55,6 +57,12 @@ def great_circle_intersection(a_lat, a_lon, b_lat, b_lon, c_lat, c_lon, d_lat, d
         math.cos(b_lat) * math.sin(b_lon),
         math.sin(b_lat),
     )
+    # normal vector, normalized
+    n1 = (ya * zb - za * yb, za * xb - xa * zb, xa * yb - ya * xb)
+    magnitude = math.sqrt(n1[0]**2 + n1[1]**2 + n1[2]**2)
+    n1 = (n1[0] / magnitude, n1[1] / magnitude, n1[2] / magnitude)
+
+    # cartesian coordinates
     xc, yc, zc = (
         math.cos(c_lat) * math.cos(c_lon),
         math.cos(c_lat) * math.sin(c_lon),
@@ -65,10 +73,10 @@ def great_circle_intersection(a_lat, a_lon, b_lat, b_lon, c_lat, c_lon, d_lat, d
         math.cos(d_lat) * math.sin(d_lon),
         math.sin(d_lat),
     )
-
-    # Compute normal vectors to the great circles
-    n1 = (ya * zb - za * yb, za * xb - xa * zb, xa * yb - ya * xb)
+    # normal vector, normalized
     n2 = (yc * zd - zc * yd, zc * xd - xc * zd, xc * yd - yc * xd)
+    magnitude = math.sqrt(n2[0]**2 + n2[1]**2 + n2[2]**2)
+    n2 = (n2[0] / magnitude, n2[1] / magnitude, n2[2] / magnitude)
 
     # Compute line of intersection between two planes
     L = (
@@ -204,7 +212,7 @@ def seconds_to_line(
     line_heading: float,
     line_length: float,
     R: float = 6371000,
-) -> float:
+) -> Tuple[bool, int, float]:
     """
     Calculate the perpendicular distance from a boat to a line defined by two points (starboard and port) and a heading.
 
@@ -259,9 +267,9 @@ def seconds_to_line(
                 # Distance from port (left) to line crossing - 0 to 100
                 line_perc = distance(port_lat, port_lon, lat1, lon1, R) / line_length
 
-                return line_perc, d / boat_speed
+                return True, line_perc, d / boat_speed
             except:
-                return 50, 10000
+                return False, 50, 10000
 
         elif simple_diff(line_heading, boat_heading) > 0:
             print("heading away")
@@ -273,6 +281,6 @@ def seconds_to_line(
     stbd_distance = distance(boat_lat, boat_lon, stbd_lat, stbd_lon, R)
     port_distance = distance(boat_lat, boat_lon, port_lat, port_lon, R)
     if stbd_distance < port_distance:
-        return 1, stbd_distance / boat_speed
+        return False, 1, stbd_distance / boat_speed
     else:
-        return 0, port_distance / boat_speed
+        return False, 0, port_distance / boat_speed

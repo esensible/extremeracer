@@ -1,7 +1,9 @@
+from logger_config import configure_logging
+configure_logging()
+
 import fastapi
 from fastapi.staticfiles import StaticFiles
 import logging
-from pythonjsonlogger import jsonlogger
 import os
 
 import silkflow
@@ -14,16 +16,6 @@ import st_race
 import st_setup
 import st_sequence
 
-# Configure the root logger
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.DEBUG)
-
-log_handler = logging.FileHandler(filename="trace.json")
-# log_handler = logging.StreamHandler()
-
-formatter = jsonlogger.JsonFormatter(timestamp=True)
-log_handler.setFormatter(formatter)
-root_logger.addHandler(log_handler)
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +55,9 @@ def render_ui():
 
 @app.on_event("startup")
 async def app_startup():
-    gps.start()
+    import platform
+    if 'WSL' not in platform.uname().release:
+        gps.start()
     st_setup.start()
 
 

@@ -1,12 +1,13 @@
 import asyncio
 from datetime import datetime, timedelta
 import logging
-import sys
 
 import silkflow
 from silkflow.html import *
 
 import common
+
+logger = logging.getLogger(__name__)
 
 #
 # Race state handler
@@ -39,6 +40,7 @@ def start():
 
     _race_start = datetime.now()
     _race_timer_task = asyncio.create_task(_timer())
+    logger.info("State change", extra=dict(from_=common.state.value, to=common.STATE_RACE))
     common.state.value = common.STATE_RACE
     asyncio.create_task(silkflow.sync_poll())
 

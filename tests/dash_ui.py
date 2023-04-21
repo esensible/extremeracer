@@ -122,7 +122,7 @@ async def process_event():
     asyncio.create_task(silk_proxy())
 
 def run_api_app():
-    uvicorn.run(main.app, host="127.0.0.1", port=8000)
+    uvicorn.run(main.app, host="127.0.0.1", port=8080)
 
 if __name__ == "__main__":
     dash_thread = threading.Thread(target=run_dash_app)
