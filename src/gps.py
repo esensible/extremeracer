@@ -22,6 +22,10 @@ class GPSProtocol(asyncio.Protocol):
         # only generate the GPRMC message
         # NOTE: twice per second
         self.send_pmtk_command("PMTK314,0,1,0,0,0,0,0,0")
+        # enable SBAS
+        self.send_pmtk_command("PMTK313,1")
+        # SBAS integrity mode
+        self.send_pmtk_command("PMTK319,1")
 
     def send_pmtk_command(self, command_without_checksum):
         checksum = 0
@@ -44,9 +48,9 @@ class GPSProtocol(asyncio.Protocol):
                     break
 
                 if pos.identifier() == "GPRMC,":
-                    if not self.offset_applied:
-                        self.apply_time_offset_from_msg(pos)
-                        self.offset_applied = True
+                    # if not self.offset_applied:
+                    #     self.apply_time_offset_from_msg(pos)
+                    #     self.offset_applied = True
 
                     if pos.status != "A":
                         break
