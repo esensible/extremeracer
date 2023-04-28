@@ -105,7 +105,7 @@ def update_gps_data(marker1_center, marker2_center, refresh_button_clicks, speed
 event = None
 
 def run_dash_app():
-    app.run_server(port=8050)
+    app.run_server(port=8000)
 
 
 async def silk_proxy():

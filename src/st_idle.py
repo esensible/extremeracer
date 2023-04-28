@@ -22,7 +22,7 @@ def start():
     time_task = asyncio.create_task(common.time_task())
     logger.info("State change", extra=dict(from_=common.state.value, to=common.STATE_IDLE))
     common.state.value = common.STATE_IDLE
-    asyncio.create_task(silkflow.sync_poll())
+    asyncio.create_task(silkflow.sync_effects())
 
 
 def idle_handler(seconds):

@@ -11,7 +11,7 @@ STATE_INIT = 0
 STATE_IDLE = 1
 STATE_SEQ = 2
 STATE_RACE = 3
-state = silkflow.State(STATE_INIT)
+state = silkflow.Signal(STATE_INIT)
 
 logger = logging.getLogger(__name__)
 
@@ -43,20 +43,20 @@ class GpsData:
         return (self.latitude, self.longitude, self.unwrapped_heading, self.speed)
 
 
-gps = silkflow.State(GpsData(1e-5, 1e-5, 1e-5, 1e-5))
+gps = silkflow.Signal(GpsData(1e-5, 1e-5, 1e-5, 1e-5))
 
 
-@silkflow.hook
+@silkflow.effect
 def speed():
     return f"{gps.value.speed:.1f}"
 
 
-@silkflow.hook
+@silkflow.effect
 def heading():
     return f"{gps.value.heading_deg:.0f}"
 
 
-now = silkflow.State(datetime.now().strftime("%I:%M").lstrip("0"))
+now = silkflow.Signal(datetime.now().strftime("%I:%M").lstrip("0"))
 
 
 async def time_task():
@@ -67,10 +67,10 @@ async def time_task():
         remaining_seconds = (next_minute - _now).total_seconds()
         await asyncio.sleep(remaining_seconds)
         now.value = next_minute.strftime("%I:%M").lstrip("0")
-        await silkflow.sync_poll()
+        await silkflow.sync_effects()
 
 
-@silkflow.hook
+@silkflow.effect
 def time_of_day():
     return now.value
 
@@ -82,7 +82,7 @@ LINE_NONE = 0
 LINE_PORT = 1
 LINE_STBD = 2
 LINE_BOTH = LINE_PORT | LINE_STBD
-line = silkflow.State(LINE_NONE)
+line = silkflow.Signal(LINE_NONE)
 
 
 line_stbd = None
@@ -90,8 +90,8 @@ line_port = None
 line_heading = None
 line_length = None
 
-line_cross_seconds = silkflow.State(0)
-line_cross_point = silkflow.State(0)
+line_cross_seconds = silkflow.Signal(0)
+line_cross_point = silkflow.Signal(0)
 
 
 def update_gps(latitude, longitude, heading, speed, sync=True):
@@ -116,7 +116,7 @@ def update_gps(latitude, longitude, heading, speed, sync=True):
 
     if sync and state.value in (STATE_IDLE, STATE_RACE):
         # idle and race are just chillin, waiting for 1m boundaries
-        asyncio.create_task(silkflow.sync_poll())
+        asyncio.create_task(silkflow.sync_effects())
 
 
 @silkflow.callback
@@ -162,7 +162,7 @@ def click_port(event):
         logger.info("line", extra=dict(stbd=line_stbd, port=line_port, heading=line_heading, length=line_length))
 
 
-@silkflow.hook
+@silkflow.effect
 def time_to_line():
     seconds = line_cross_seconds.value
     # if state.value == STATE_SEQ:
@@ -182,7 +182,7 @@ def time_to_line():
 MARGIN = 5
 
 
-@silkflow.hook
+@silkflow.effect
 def line_cross():
     cross_value = int(line_cross_point.value)
     return (
@@ -192,7 +192,7 @@ def line_cross():
     )
 
 
-@silkflow.hook
+@silkflow.effect
 def render_line_buttons():
     if line.value == LINE_BOTH:
         return div(

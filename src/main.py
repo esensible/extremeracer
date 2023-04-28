@@ -39,7 +39,7 @@ def head():
 
 
 @app.get("/")
-@silkflow.hook(render=True, head_elems=head())
+@silkflow.effect(render=True, head_elems=head())
 def render_ui():
     if common.state.value == common.STATE_INIT:
         return st_setup.render()

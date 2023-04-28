@@ -24,7 +24,7 @@ _start_epoch = None
 _start_secs = None
 
 # state used to update display
-seq_secs = silkflow.State(0)
+seq_secs = silkflow.Signal(0)
 _countdown_task = None
 
 
@@ -43,7 +43,7 @@ async def _countdown():
         sleep_time = next_tick - time.time()
         await asyncio.sleep(sleep_time)
         seq_secs.value = _start_secs - (next_tick - _start_epoch)
-        await silkflow.sync_poll()
+        await silkflow.sync_effects()
         next_tick += 1
 
     st_race.start()
@@ -59,10 +59,10 @@ def start(epoch, seconds):
     _countdown_task = asyncio.create_task(_countdown())
     logger.info("State change", extra=dict(from_=common.state.value, to=common.STATE_SEQ, epoch=epoch, seconds=seconds))
     common.state.value = common.STATE_SEQ
-    asyncio.create_task(silkflow.sync_poll())
+    asyncio.create_task(silkflow.sync_effects())
 
 
-@silkflow.hook
+@silkflow.effect
 def time_to_start():
     seconds = seq_secs.value
     return f"{int(seconds/60)}:{int(seconds)%60:02}"
@@ -112,4 +112,5 @@ def render():
             ),
             Class="buttons",
         ),
+        # div(Class="overlay"),
     )
