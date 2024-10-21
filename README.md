@@ -1,3 +1,14 @@
+# !! Deprecated !!
+
+I've moved to Rust + SolidJS running on ESP32 and RP2040 MCUs to reduce cost and power. This project was the path finder for my current focus, providing that Kindle Paperwhites are awesome IP67, daylight readable e-ink displays with backlight for night.
+I won't be contributing further to this project. 
+
+If you're interested in this project, give me a shout & I'll invite you to beta my latest. Features are:
+* Client works on multiple device types, including 2 x Kindle Paperwhites
+* Server can run on embedded MCU+GPS, or as a mobile phone app (rust for the win!)
+* Support for "apps" e.g. I've built one for race day, for training, for long races (e.g. [Around French Island](https://www.cowesyachtclub.com/afi)) and for night sailing (e.g. [Full moon races!](https://www.google.com/maps/place/34%C2%B012'54.1%22S+140%C2%B026'55.4%22E/@-34.215135,140.4511488,14.31z))
+* Data analytics to help me learn to sail faster
+
 # Exteme Racer
 
 ExtremeRacer provides a tactical display for sailing:
